@@ -134,6 +134,29 @@ def slope_lines(image,lines):
     This will return left and right line with an array of parameters (m, c)
     of the form ´y = m * x + c´.
     """
+    
+    left_lines = []
+
+    right_lines = []
+
+    for line in lines:
+        for x1, y1, x2, y2 in line:
+
+            if x1 == x2:
+                pass
+            else:
+                m = (y2 - y1)/(x2 - x1)
+                n = (x2*y1-x1*y2)/(x2-x1)
+
+            if m < 0:
+                left_lines.append((m,n))
+            elif m>=0:
+                right_lines.append((m, n))
+
+    left_line_mean = np.median(left_lines, axis=0)
+    right_line_mean = np.median(right_lines, axis=0)
+
+    return left_line_mean, right_line_mean
 
 
 def slope(image, left_line, right_line):
@@ -142,6 +165,25 @@ def slope(image, left_line, right_line):
 
     This will return a image.
     """
+
+    pts = np.array(dtype = np.int32)
+
+    y1 = 0
+    y2=image.shape[1]*0.6
+
+    for slope, intercept in [left_line, right_line]:
+        x1 = (y1 - intercept) / slope
+        x2 = (y2 - intercept) / slope
+
+        pts.append((x1, y1))
+        pts.append(x2, y2)
+
+        image = cv2.line(image, [x1, y1], [x2, y2], (212, 42, 23), 2)
+
+    image = cv2.polylines(image, [pts], False, (2, 224, 21))
+    
+
+    return image
 
 
 def draw_lines(img, lines, color=[255, 0, 0], thickness=10):
@@ -163,6 +205,7 @@ def weighted_img(img, initial_img, α=0.1, β=1., γ=0.):
     initial_img * α + img * β + γ
     NOTE: initial_img and img must be the same shape!
     """
+    return cv2.addWeighted(initial_img, α, img, β, γ)
 
 
 def steer(image, left_line, right_line):
